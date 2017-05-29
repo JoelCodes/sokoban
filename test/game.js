@@ -7,6 +7,4 @@ describe('#game(state, action)', () => {
     const initialState = game(undefined, {});
     expect(initialState).to.deep.eq({});
   });
-  describe('Game Setup Logic', () => {
-  });
 });
