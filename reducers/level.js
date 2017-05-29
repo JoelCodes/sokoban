@@ -46,7 +46,9 @@ function setup(state, { grid }) {
     return searchRows(grid, 0);
   };
   const player = find(PLAYER).set('direction', NORTH);
-  const boxes = filterGrid(cell => cell === BOX || cell === GOAL_BOX);
+  const freeBoxes = filterGrid(cell => cell === BOX).map(box => box.set('goal', false));
+  const goalBoxes = filterGrid(cell => cell === GOAL_BOX).map(box => box.set('goal', true));
+  const boxes = freeBoxes.concat(goalBoxes);
   const goals = filterGrid(cell => cell === GOAL || cell === GOAL_BOX);
   const newGrid = grid.map(row => row.map((cell) => {
     if (cell === PLAYER || cell === BOX) {
@@ -108,9 +110,13 @@ function advance(dimension, advanceBy) {
     if (state.get('boxes').some(box => box.get('r') === coordBehindBox.get('r') && box.get('c') === coordBehindBox.get('c'))) {
       return state;
     }
+    const newBox = state
+      .getIn(['boxes', indexOfBoxInNextSpace])
+      .update(dimension, x => x + advanceBy)
+      .set('goal', spaceBehindBox === GOAL);
     const updatedState = state
           .set('player', nextPlayer)
-          .updateIn(['boxes', indexOfBoxInNextSpace, dimension], x => x + advanceBy);
+          .setIn(['boxes', indexOfBoxInNextSpace], newBox);
     if (spaceBehindBox === GOAL && !updatedState.get('boxes').some(box => state.getIn(['grid', box.get('r'), box.get('c')]) !== GOAL)) {
       return updatedState.set('status', FINISHED);
     }

@@ -1,6 +1,6 @@
 /* eslint-env mocha */
 const expect = require('chai').expect;
-const game = require('../reducers/game');
+const { game } = require('../reducers/game');
 
 describe('#game(state, action)', () => {
   it('returns the initial state', () => {

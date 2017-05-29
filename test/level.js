@@ -34,7 +34,7 @@ describe('#level(state, action)', () => {
 
         expect(setupState.toJS()).to.deep.eq({
           status: READY,
-          boxes: [{ r: 0, c: 2 }, { r: 0, c: 4 }],
+          boxes: [{ r: 0, c: 2, goal: false }, { r: 0, c: 4, goal: true }],
           player: { r: 0, c: 3, direction: NORTH },
           goals: [{ r: 0, c: 0 }, { r: 0, c: 4 }],
           grid: [[GOAL, SPACE, SPACE, SPACE, GOAL]],
@@ -243,26 +243,26 @@ describe('#level(state, action)', () => {
         const boxSouth = fromJS({
           status: READY,
           player: { direction: SOUTH, r: 0, c: 0 },
-          boxes: [{ r: 1, c: 0 }],
+          boxes: [{ r: 1, c: 0, goal: false }],
           grid: [[SPACE], [SPACE], [SPACE]],
         });
         expect(level(boxSouth, { type: LEFT }).toJS()).to.deep.eq({
           status: READY,
           player: { direction: SOUTH, r: 1, c: 0 },
-          boxes: [{ r: 2, c: 0 }],
+          boxes: [{ r: 2, c: 0, goal: false }],
           grid: [[SPACE], [SPACE], [SPACE]],
         });
 
         const boxWest = fromJS({
           status: READY,
           player: { direction: WEST, r: 0, c: 2 },
-          boxes: [{ r: 0, c: 1 }],
+          boxes: [{ r: 0, c: 1, goal: false }],
           grid: [[SPACE, SPACE, SPACE]],
         });
         expect(level(boxWest, { type: LEFT }).toJS()).to.deep.eq({
           status: READY,
           player: { direction: WEST, r: 0, c: 1 },
-          boxes: [{ r: 0, c: 0 }],
+          boxes: [{ r: 0, c: 0, goal: false }],
           grid: [[SPACE, SPACE, SPACE]],
         });
       });
@@ -270,7 +270,7 @@ describe('#level(state, action)', () => {
         const boxAtSouthEdge = fromJS({
           status: READY,
           player: { direction: SOUTH, r: 0, c: 0 },
-          boxes: [{ r: 1, c: 0 }],
+          boxes: [{ r: 1, c: 0, goal: false }],
           grid: [[SPACE], [SPACE]],
         });
         expect(level(boxAtSouthEdge, { type: LEFT })).to.eq(boxAtSouthEdge);
@@ -334,7 +334,7 @@ describe('#level(state, action)', () => {
         expect(level(manyBoxes, { type: LEFT }).toJS()).to.deep.eq({
           status: READY,
           player: { direction: SOUTH, r: 3, c: 2 },
-          boxes: [{ r: 1, c: 2 }, { r: 2, c: 1 }, { r: 4, c: 2 }, { r: 2, c: 3 }],
+          boxes: [{ r: 1, c: 2 }, { r: 2, c: 1 }, { r: 4, c: 2, goal: false }, { r: 2, c: 3 }],
           grid: [
             [SPACE, SPACE, SPACE, SPACE, SPACE],
             [SPACE, SPACE, SPACE, SPACE, SPACE],
@@ -346,7 +346,7 @@ describe('#level(state, action)', () => {
         expect(level(level(manyBoxes, { type: UP }), { type: LEFT }).toJS()).to.deep.eq({
           status: READY,
           player: { direction: WEST, r: 2, c: 1 },
-          boxes: [{ r: 1, c: 2 }, { r: 2, c: 0 }, { r: 3, c: 2 }, { r: 2, c: 3 }],
+          boxes: [{ r: 1, c: 2 }, { r: 2, c: 0, goal: false }, { r: 3, c: 2 }, { r: 2, c: 3 }],
           grid: [
             [SPACE, SPACE, SPACE, SPACE, SPACE],
             [SPACE, SPACE, SPACE, SPACE, SPACE],
@@ -360,7 +360,7 @@ describe('#level(state, action)', () => {
         const movementToGoal = fromJS({
           status: READY,
           player: { direction: SOUTH, r: 0, c: 0 },
-          boxes: [{ r: 1, c: 0 }, { r: 1, c: 1 }],
+          boxes: [{ r: 1, c: 0, goal: false }, { r: 1, c: 1, goal: false }],
           grid: [
             [SPACE], [SPACE], [GOAL],
           ],
@@ -368,7 +368,7 @@ describe('#level(state, action)', () => {
         expect(level(movementToGoal, { type: LEFT }).toJS()).to.deep.eq({
           status: READY,
           player: { direction: SOUTH, r: 1, c: 0 },
-          boxes: [{ r: 2, c: 0 }, { r: 1, c: 1 }],
+          boxes: [{ r: 2, c: 0, goal: true }, { r: 1, c: 1, goal: false }],
           grid: [
             [SPACE], [SPACE], [GOAL],
           ],
@@ -381,7 +381,7 @@ describe('#level(state, action)', () => {
           grid: [
             [SPACE], [SPACE], [GOAL],
           ],
-          boxes: [{ r: 1, c: 0 }],
+          boxes: [{ r: 1, c: 0, goal: false }],
         });
         expect(level(singleGoal, { type: LEFT }).toJS()).to.deep.eq({
           status: FINISHED,
@@ -389,7 +389,7 @@ describe('#level(state, action)', () => {
           grid: [
             [SPACE], [SPACE], [GOAL],
           ],
-          boxes: [{ r: 2, c: 0 }],
+          boxes: [{ r: 2, c: 0, goal: true }],
         });
       });
     });
