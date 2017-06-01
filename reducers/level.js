@@ -45,6 +45,7 @@ function setup(state, { grid }) {
     };
     return searchRows(grid, 0);
   };
+
   const player = find(PLAYER).set('direction', NORTH);
   const freeBoxes = filterGrid(cell => cell === BOX).map(box => box.set('goal', false));
   const goalBoxes = filterGrid(cell => cell === GOAL_BOX).map(box => box.set('goal', true));
@@ -132,7 +133,9 @@ const advancers = {
 };
 
 function advanceAndTurn(direction) {
-  return state => advancers[direction](turn(direction)(state));
+  return state => ((state.get('status') === READY)
+    ? advancers[direction](turn(direction)(state))
+    : state);
 }
 
 module.exports = {

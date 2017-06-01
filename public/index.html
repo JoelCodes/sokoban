@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <style>
+    .grid{
+      position: relative;
+    }
+    .row{
+      display:flex;
+    }
+    .square{
+      box-sizing: border-box;
+      width: 46px;
+      height: 46px;
+      margin:2px;
+      border: 2px solid black;
+    }
+    .square.goal {
+      border-color: tomato;
+    }
+    .player {
+      position:absolute;
+      width:50px;
+      height: 50px;
+      top:0;
+      left: 0;
+    }
+    .player::after {
+      background-color: rebeccapurple;
+      position:absolute;
+      display:block;
+      content: ' ';
+      top: 10px;
+      bottom: 10px;
+      left: 10px;
+      right: 10px;
+      border-radius: 100%;
+    }
+    .box {
+      position: absolute;
+      width:50px;
+      height:50px;
+      top: 0;
+      box-sizing:border-box;
+    }
+    .box::after{
+      position: absolute;
+      content: ' ';
+      top:10px;
+      bottom: 10px;
+      left: 10px;
+      right: 10px;
+      background: deepskyblue;
+      border: 2px solid rebeccapurple;
+      display:block;
+    }
+  </style>
+</head>
+<body>
+  <div id="root">
+    <div class="grid">
+      <div class="squares"></div>
+      <div class="player"></div>
+      <div class="boxes"></div>
+    </div>
+  </div>
+  <script src="vanilla.js"></script>
+</body>
+</html>

@@ -470,7 +470,8 @@ describe('#level(state, action)', () => {
       it('does nothing if status is not READY', () => {
         const notReady = fromJS({
           status: NOT_SET_UP,
-          player: { direction: NORTH },
+          player: { direction: NORTH, r: 1, c: 0 },
+          grid: [[SPACE], [SPACE]],
         });
         expect(level(notReady, { type: NORTH })).to.eq(notReady);
 
