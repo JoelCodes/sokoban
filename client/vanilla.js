@@ -59,5 +59,7 @@ document.addEventListener('keydown', (evt) => {
     app.dispatch({ type: 'EAST' });
   } else if (evt.keyCode === 40) {
     app.dispatch({ type: 'SOUTH' });
+  } else if (evt.key === 'z') {
+    app.dispatch({ type: 'UNDO' });
   }
 });

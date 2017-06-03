@@ -7,6 +7,7 @@ const {
   NORTH, WEST, EAST, SOUTH,
   SETUP, UP, DOWN, LEFT, RIGHT,
   BOX, PLAYER, SPACE, GOAL, WALL, GOAL_BOX,
+  UNDO,
 } = require('../reducers/level');
 
 describe('#level(state, action)', () => {
@@ -37,6 +38,7 @@ describe('#level(state, action)', () => {
           boxes: [{ r: 0, c: 2, goal: false }, { r: 0, c: 4, goal: true }],
           player: { r: 0, c: 3, direction: NORTH },
           goals: [{ r: 0, c: 0 }, { r: 0, c: 4 }],
+          moves: [],
           grid: [[GOAL, SPACE, SPACE, SPACE, GOAL]],
         });
       });
@@ -182,6 +184,7 @@ describe('#level(state, action)', () => {
           player: { direction: SOUTH, r: 0, c: 0 },
           boxes: [],
           grid: [[SPACE], [SPACE]],
+          moves: [],
         });
 
         expect(level(roomToMoveSouth, { type: LEFT }).toJS()).to.deep.eq({
@@ -189,6 +192,7 @@ describe('#level(state, action)', () => {
           player: { direction: SOUTH, r: 1, c: 0 },
           boxes: [],
           grid: [[SPACE], [SPACE]],
+          moves: [{ player: { r: 0, c: 0, direction: SOUTH } }],
         });
       });
       it('moves a WEST facing player further WEST', () => {
@@ -196,6 +200,7 @@ describe('#level(state, action)', () => {
           status: READY,
           player: { direction: WEST, r: 0, c: 1 },
           boxes: [],
+          moves: [],
           grid: [[SPACE, SPACE]],
         });
 
@@ -204,6 +209,7 @@ describe('#level(state, action)', () => {
           player: { direction: WEST, r: 0, c: 0 },
           boxes: [],
           grid: [[SPACE, SPACE]],
+          moves: [{ player: { r: 0, c: 1, direction: WEST } }],
         });
       });
       it('prevents movement into walls', () => {
@@ -245,12 +251,17 @@ describe('#level(state, action)', () => {
           player: { direction: SOUTH, r: 0, c: 0 },
           boxes: [{ r: 1, c: 0, goal: false }],
           grid: [[SPACE], [SPACE], [SPACE]],
+          moves: [],
         });
         expect(level(boxSouth, { type: LEFT }).toJS()).to.deep.eq({
           status: READY,
           player: { direction: SOUTH, r: 1, c: 0 },
           boxes: [{ r: 2, c: 0, goal: false }],
           grid: [[SPACE], [SPACE], [SPACE]],
+          moves: [{
+            player: { direction: SOUTH, r: 0, c: 0 },
+            boxes: [{ r: 1, c: 0, goal: false }],
+          }],
         });
 
         const boxWest = fromJS({
@@ -258,12 +269,17 @@ describe('#level(state, action)', () => {
           player: { direction: WEST, r: 0, c: 2 },
           boxes: [{ r: 0, c: 1, goal: false }],
           grid: [[SPACE, SPACE, SPACE]],
+          moves: [],
         });
         expect(level(boxWest, { type: LEFT }).toJS()).to.deep.eq({
           status: READY,
           player: { direction: WEST, r: 0, c: 1 },
           boxes: [{ r: 0, c: 0, goal: false }],
           grid: [[SPACE, SPACE, SPACE]],
+          moves: [{
+            player: { direction: WEST, r: 0, c: 2 },
+            boxes: [{ r: 0, c: 1, goal: false }],
+          }],
         });
       });
       it('does not move a box whose path is blocked', () => {
@@ -330,6 +346,7 @@ describe('#level(state, action)', () => {
             [SPACE, SPACE, SPACE, SPACE, SPACE],
             [SPACE, SPACE, SPACE, SPACE, SPACE],
           ],
+          moves: [],
         });
         expect(level(manyBoxes, { type: LEFT }).toJS()).to.deep.eq({
           status: READY,
@@ -342,8 +359,12 @@ describe('#level(state, action)', () => {
             [SPACE, SPACE, SPACE, SPACE, SPACE],
             [SPACE, SPACE, SPACE, SPACE, SPACE],
           ],
+          moves: [{
+            player: { direction: SOUTH, r: 2, c: 2 },
+            boxes: [{ r: 1, c: 2 }, { r: 2, c: 1 }, { r: 3, c: 2 }, { r: 2, c: 3 }],
+          }],
         });
-        expect(level(level(manyBoxes, { type: UP }), { type: LEFT }).toJS()).to.deep.eq({
+        expect(level(manyBoxes.setIn(['player', 'direction'], WEST), { type: LEFT }).toJS()).to.deep.eq({
           status: READY,
           player: { direction: WEST, r: 2, c: 1 },
           boxes: [{ r: 1, c: 2 }, { r: 2, c: 0, goal: false }, { r: 3, c: 2 }, { r: 2, c: 3 }],
@@ -354,6 +375,10 @@ describe('#level(state, action)', () => {
             [SPACE, SPACE, SPACE, SPACE, SPACE],
             [SPACE, SPACE, SPACE, SPACE, SPACE],
           ],
+          moves: [{
+            player: { direction: WEST, r: 2, c: 2 },
+            boxes: [{ r: 1, c: 2 }, { r: 2, c: 1 }, { r: 3, c: 2 }, { r: 2, c: 3 }],
+          }],
         });
       });
       it('permits movement onto a goal', () => {
@@ -364,6 +389,7 @@ describe('#level(state, action)', () => {
           grid: [
             [SPACE], [SPACE], [GOAL],
           ],
+          moves: [],
         });
         expect(level(movementToGoal, { type: LEFT }).toJS()).to.deep.eq({
           status: READY,
@@ -372,6 +398,10 @@ describe('#level(state, action)', () => {
           grid: [
             [SPACE], [SPACE], [GOAL],
           ],
+          moves: [{
+            player: { direction: SOUTH, r: 0, c: 0 },
+            boxes: [{ r: 1, c: 0, goal: false }, { r: 1, c: 1, goal: false }],
+          }],
         });
       });
       it('recognizes a victory condition', () => {
@@ -382,7 +412,9 @@ describe('#level(state, action)', () => {
             [SPACE], [SPACE], [GOAL],
           ],
           boxes: [{ r: 1, c: 0, goal: false }],
+          moves: [],
         });
+
         expect(level(singleGoal, { type: LEFT }).toJS()).to.deep.eq({
           status: FINISHED,
           player: { direction: SOUTH, r: 1, c: 0 },
@@ -390,6 +422,10 @@ describe('#level(state, action)', () => {
             [SPACE], [SPACE], [GOAL],
           ],
           boxes: [{ r: 2, c: 0, goal: true }],
+          moves: [{
+            player: { direction: SOUTH, r: 0, c: 0 },
+            boxes: [{ r: 1, c: 0, goal: false }],
+          }],
         });
       });
     });
@@ -400,7 +436,6 @@ describe('#level(state, action)', () => {
           player: { direction: WEST },
         });
         expect(level(notReady, { type: RIGHT })).to.eq(notReady);
-
         const finished = fromJS({
           status: FINISHED,
           player: { direction: WEST },
@@ -441,6 +476,7 @@ describe('#level(state, action)', () => {
           player: { direction: NORTH, r: 1, c: 0 },
           boxes: [],
           grid: [[SPACE], [SPACE]],
+          moves: [],
         });
 
         expect(level(roomToMoveNorth, { type: RIGHT }).toJS()).to.deep.eq({
@@ -448,6 +484,7 @@ describe('#level(state, action)', () => {
           player: { direction: NORTH, r: 0, c: 0 },
           boxes: [],
           grid: [[SPACE], [SPACE]],
+          moves: [{ player: { r: 1, c: 0, direction: NORTH } }],
         });
       });
       it('moves an EAST facing player further EAST', () => {
@@ -456,6 +493,7 @@ describe('#level(state, action)', () => {
           player: { direction: EAST, r: 0, c: 0 },
           boxes: [],
           grid: [[SPACE, SPACE]],
+          moves: [],
         });
 
         expect(level(roomToMoveEast, { type: RIGHT }).toJS()).to.deep.eq({
@@ -463,6 +501,9 @@ describe('#level(state, action)', () => {
           player: { direction: EAST, r: 0, c: 1 },
           boxes: [],
           grid: [[SPACE, SPACE]],
+          moves: [{
+            player: { c: 0, r: 0, direction: EAST },
+          }],
         });
       });
     });
@@ -491,6 +532,7 @@ describe('#level(state, action)', () => {
           },
           boxes: [],
           grid: [[SPACE], [SPACE]],
+          moves: [],
         });
         const final = {
           status: READY,
@@ -503,10 +545,11 @@ describe('#level(state, action)', () => {
           grid: [[SPACE], [SPACE]],
         };
 
-        expect(level(facingNorth, { type: NORTH }).toJS()).to.deep.eq(final);
-        [EAST, SOUTH, WEST].forEach((dir) => {
+        [NORTH, EAST, SOUTH, WEST].forEach((dir) => {
           const face = facingNorth.setIn(['player', 'direction'], dir);
-          expect(level(face, { type: NORTH }).toJS()).to.deep.eq(final);
+          expect(level(face, { type: NORTH }).toJS()).to.deep.eq(Object.assign({}, final, {
+            moves: [{ player: { r: 1, c: 0, direction: dir } }],
+          }));
         });
       });
     });
@@ -534,6 +577,7 @@ describe('#level(state, action)', () => {
           },
           boxes: [],
           grid: [[SPACE], [SPACE]],
+          moves: [],
         });
         const final = {
           status: READY,
@@ -546,10 +590,11 @@ describe('#level(state, action)', () => {
           grid: [[SPACE], [SPACE]],
         };
 
-        expect(level(facingSouth, { type: SOUTH }).toJS()).to.deep.eq(final);
-        [EAST, NORTH, WEST].forEach((dir) => {
+        [NORTH, EAST, SOUTH, WEST].forEach((dir) => {
           const face = facingSouth.setIn(['player', 'direction'], dir);
-          expect(level(face, { type: SOUTH }).toJS()).to.deep.eq(final);
+          expect(level(face, { type: SOUTH }).toJS()).to.deep.eq(Object.assign({}, final, {
+            moves: [{ player: { r: 0, c: 0, direction: dir } }],
+          }));
         });
       });
     });
@@ -577,6 +622,7 @@ describe('#level(state, action)', () => {
           },
           boxes: [],
           grid: [[SPACE, SPACE]],
+          moves: [],
         });
         const final = {
           status: READY,
@@ -589,10 +635,11 @@ describe('#level(state, action)', () => {
           grid: [[SPACE, SPACE]],
         };
 
-        expect(level(facingWest, { type: WEST }).toJS()).to.deep.eq(final);
-        [SOUTH, EAST, NORTH].forEach((dir) => {
+        [NORTH, EAST, SOUTH, WEST].forEach((dir) => {
           const face = facingWest.setIn(['player', 'direction'], dir);
-          expect(level(face, { type: WEST }).toJS()).to.deep.eq(final);
+          expect(level(face, { type: WEST }).toJS()).to.deep.eq(Object.assign({}, final, {
+            moves: [{ player: { r: 0, c: 1, direction: dir } }],
+          }));
         });
       });
     });
@@ -620,6 +667,7 @@ describe('#level(state, action)', () => {
           },
           boxes: [],
           grid: [[SPACE, SPACE]],
+          moves: [],
         });
         const final = {
           status: READY,
@@ -632,11 +680,109 @@ describe('#level(state, action)', () => {
           grid: [[SPACE, SPACE]],
         };
 
-        expect(level(facingEast, { type: EAST }).toJS()).to.deep.eq(final);
-        [SOUTH, WEST, NORTH].forEach((dir) => {
+        [NORTH, EAST, SOUTH, WEST].forEach((dir) => {
           const face = facingEast.setIn(['player', 'direction'], dir);
-          expect(level(face, { type: EAST }).toJS()).to.deep.eq(final);
+          expect(level(face, { type: EAST }).toJS()).to.deep.eq(Object.assign({}, final, {
+            moves: [{ player: { r: 0, c: 0, direction: dir } }],
+          }));
         });
+      });
+    });
+  });
+
+  describe('{type: UNDO}', () => {
+    it('doesnt move a user at the beginning of the level', () => {
+      const noHistory = fromJS({
+        status: READY,
+        player: {
+          direction: EAST,
+          r: 0,
+          c: 0,
+        },
+        boxes: [],
+        grid: [[SPACE, SPACE]],
+        moves: [],
+      });
+      expect(level(noHistory, { type: UNDO })).to.eq(noHistory);
+    });
+    it('doesnt move a user if the game status is not READY', () => {
+      const notSetUp = fromJS({
+        status: NOT_SET_UP,
+      });
+
+      expect(level(notSetUp, { type: UNDO })).to.eq(notSetUp);
+      const finished = fromJS({
+        status: FINISHED,
+        player: {
+          direction: EAST,
+          r: 0,
+          c: 0,
+        },
+        boxes: [],
+        grid: [[SPACE, SPACE]],
+        moves: [{ player: { r: 0, c: 1 } }],
+      });
+      expect(level(finished, { type: UNDO })).to.eq(finished);
+    });
+    it('moves a user back if possible', () => {
+      const hasBackup = fromJS({
+        status: READY,
+        player: {
+          direction: EAST,
+          r: 0,
+          c: 1,
+        },
+        boxes: [],
+        grid: [[SPACE, SPACE]],
+        moves: [{
+          player: {
+            direction: EAST,
+            r: 0,
+            c: 1,
+          },
+        }, { player: { r: 0, c: 0, direction: SOUTH } }],
+      });
+
+      expect(level(hasBackup, { type: UNDO }).toJS()).to.deep.eq({
+        status: READY,
+        player: {
+          direction: SOUTH,
+          r: 0,
+          c: 0,
+        },
+        boxes: [],
+        grid: [[SPACE, SPACE]],
+        moves: [{ player: {
+          direction: EAST,
+          r: 0,
+          c: 1,
+        } }],
+      });
+    });
+    it('moves any box that the player had moved', () => {
+      const hasBoxesToBackUp = fromJS({
+        status: READY,
+        player: { direction: EAST, r: 0, c: 2 },
+        boxes: [{ r: 0, c: 3, goal: false }],
+        grid: [[SPACE, SPACE, SPACE, SPACE]],
+        moves: [{
+          player: { direction: EAST, r: 0, c: 0 },
+          boxes: [{ r: 0, c: 1, goal: false }],
+        }, {
+          player: { direction: EAST, r: 0, c: 1 },
+          boxes: [{ r: 0, c: 2, goal: false }],
+        }],
+      });
+
+      expect(level(hasBoxesToBackUp, { type: UNDO }).toJS()).to.deep.eq({
+        status: READY,
+        player: { direction: EAST, r: 0, c: 1 },
+        boxes: [{ r: 0, c: 2, goal: false }],
+        grid: [[SPACE, SPACE, SPACE, SPACE]],
+        moves: [{
+          player: { direction: EAST, r: 0, c: 0 },
+          boxes: [{ r: 0, c: 1, goal: false }],
+        }],
       });
     });
   });

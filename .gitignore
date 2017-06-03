@@ -1,3 +1,4 @@
 node_modules
 .vscode
 doc.md
+client/vanilla.js

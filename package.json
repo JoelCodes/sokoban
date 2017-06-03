@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "vanilla": "watchify client/vanilla.js -o public/vanilla.js"
   },
   "keywords": [],
   "author": "",
